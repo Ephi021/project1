@@ -1,3 +1,9 @@
+---
+title: "RWorksheet_Pineda#2"
+author: Epiphany Louise O. Pineda
+output: html_document
+---
+
 #[1.] Create a vector using : operator
 #a. Sequence from -5 to 5. Write the R code and its output. Describe its output.
 -5:5
@@ -174,4 +180,6 @@ data.frame(Power_Ranking = power_ranking[19],
 
 #c. Interpret the data.
 #The data shows that a celebrity’s power ranking depends on both influence and earnings, not just income. High earners like George Lucas and Steven Spielberg may have massive pay but lower power ranks, while influential figures like Tom Cruise rank high with moderate earnings. Updating J.K. Rowling’s rank and pay reflects her growing cultural and financial impact. Overall, Forbes’ ranking emphasizes visibility, influence, and popularity alongside income.
+
+
 
