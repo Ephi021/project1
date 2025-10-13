@@ -1,0 +1,6 @@
+---
+title: "RWorksheet_Pineda#3"
+author: Epiphany Louise O. Pineda
+output: pdf_document
+---
+
