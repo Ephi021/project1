@@ -1,0 +1,43 @@
+---
+title: "RMarkdown_Pineda"
+author: "Epiphany Louise O. Pineda"
+date: "2025-10-04"
+output: pdf_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+numbers <- c(10, 20, 30, 40, 50)
+
+mean_numbers <- mean(numbers)
+mean_numbers
+
+library(ggplot2)
+
+df <- data.frame(
+  x = 1:10,
+  y = (1:10)^2
+)
+
+ggplot(df, aes(x = x, y = y)) +
+  geom_point(color = "blue", size = 3) +
+  geom_line(color = "red") +
+  ggtitle("Example Scatter Plot") +
+  theme_minimal()
+
+
+```{r cars}
+summary(cars)
+```
+
+## Including Plots
+
+You can also embed plots, for example:
+
+```{r pressure, echo=FALSE}
+plot(pressure)
+```
+
+Note that the `echo = FALSE` parameter was added to the code chunk to prevent printing of the R code that generated the plot.
