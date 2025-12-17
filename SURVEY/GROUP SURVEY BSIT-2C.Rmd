@@ -1,0 +1,387 @@
+---
+title: "Student Decision Survey: Continue Studying or Shift to Freelancing"
+author: "PINEDA, PEREZ, SAPAN, JADULOS BSIT 2-C"
+date: "`r Sys.Date()`"
+output:
+  pdf_document:
+    toc: false
+    toc_depth: 2
+header-includes:
+  - \usepackage{indentfirst}
+  - \setlength{\parindent}{0.5in}
+  - \usepackage{setspace}
+  - \onehalfspacing
+  - \usepackage{times}
+  - \renewcommand{\familydefault}{\rmdefault}
+  - \usepackage[fontsize=12pt]{scrextend}
+  - \PassOptionsToPackage{left=1.5in,right=1in,top=1in,bottom=1in}{geometry}
+  - \usepackage{geometry}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(
+  echo = FALSE,
+  message = FALSE,
+  warning = FALSE,
+  fig.align = "center",
+  fig.width = 7,
+  fig.height = 5,
+  out.width = "100%"
+)
+```
+
+PURPOSE OF THE STUDY
+
+This study was conducted to investigate the decision-making conflict faced by students between continuing their formal education and pursuing a freelancing career. It aims to understand the key factors, perceptions, and motivations behind this choice, including the perceived value of a degree, confidence in alternative career paths, and the influence of financial security and workplace conditions on educational decisions.
+
+```{r}
+library(tidyverse)
+library(ggplot2)
+library(scales)
+library(forcats)
+library(readxl)
+```
+
+
+```{r}
+survey_xlsx <- read_excel("survey_data.xlsx")
+survey_data <- as.data.frame(survey_xlsx)
+```
+
+
+```{r}
+clean_names <- function(names) {
+  names <- gsub("\\.", "_", names)
+  names <- gsub(" ", "_", names)
+  names <- gsub("__", "_", names)
+  names <- gsub("_$", "", names)
+  return(names)
+}
+colnames(survey_data) <- clean_names(colnames(survey_data))
+```
+
+
+```{r}
+likert_columns <- 8:13
+names(likert_columns) <- c(
+  "Continuing_studies_better_long_term",
+  "Freelancing_faster_income",
+  "Confident_freelancer_without_degree",
+  "College_degree_important",
+  "Freelancing_more_freedom",
+  "Confident_reaching_dream_job"
+)
+
+for (i in seq_along(likert_columns)) {
+  survey_data[[names(likert_columns)[i]]] <- factor(
+    survey_data[[likert_columns[i]]],
+    levels = 1:5,
+    labels = c("Strongly Disagree", "Disagree", "Neutral", "Agree", "Strongly Agree"),
+    ordered = TRUE
+  )
+}
+```
+
+```{r}
+question_col <- grep("quit_studying.*freelancing.*continue", colnames(survey_data), value = TRUE)[1]
+
+plot_single_choice <- function(column, title, fill_colors = c("steelblue", "orange")) {
+  df <- survey_data %>%
+    filter(!is.na(.data[[column]])) %>%
+    count(.data[[column]]) %>%
+    mutate(percentage = n / sum(n) * 100)
+  
+  ggplot(df, aes(x = .data[[column]], y = percentage, fill = .data[[column]])) +
+    geom_bar(stat = "identity", width = 0.6) +
+    geom_text(aes(label = paste0(round(percentage,1), "%")), vjust = -0.3, size = 3) +
+    scale_fill_manual(values = fill_colors) +
+    scale_y_continuous(expand = expansion(mult = c(0,0.15))) +
+    labs(title = title, x = NULL, y = "Percentage") +
+    base_theme +
+    theme(legend.position = "none")
+}
+
+
+base_theme <- theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(size = 13, face = "bold"),
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    plot.margin = margin(5, 5, 5, 5)
+  )
+
+
+print(plot_single_choice(question_col, "1. Would you quit studying and do freelancing or continue studying?"))
+
+```
+
+A strong majority (72%) of respondents prefer to continue studying to get a stable job rather than quit for freelancing (22%), indicating that despite interest in freelancing, traditional education and job security remain the dominant preference, likely due to perceived stability and long-term career benefits over the immediate but uncertain income from freelancing.
+
+```{r}
+base_theme <- theme_minimal(base_size = 11) +
+  theme(
+    plot.title = element_text(size = 13, face = "bold"),
+    axis.text.x = element_text(angle = 30, hjust = 1),
+    plot.margin = margin(5, 5, 5, 5)
+  )
+
+create_likert_chart <- function(question_data, title) {
+  summary <- data.frame(Response = question_data) %>%
+    filter(!is.na(Response)) %>%
+    count(Response) %>%
+    mutate(percentage = n / sum(n) * 100)
+
+  ggplot(summary, aes(Response, percentage, fill = Response)) +
+    geom_bar(stat = "identity", width = 0.7) +
+    geom_text(
+      aes(label = paste0(round(percentage,1), "%")),
+      vjust = -0.3,
+      size = 3
+    ) +
+    scale_y_continuous(
+      labels = percent_format(scale = 1),
+      limits = c(0, max(summary$percentage) * 1.15)
+    ) +
+    scale_fill_brewer(palette = "RdYlBu", direction = -1) +
+    labs(title = title, x = NULL, y = "Percentage") +
+    base_theme +
+    theme(legend.position = "none")
+}
+```
+
+```{r}
+likert_titles <- c(
+  "2. Freelancing offers faster income",
+  "3. Confidence freelancing without a degree",
+  "4. College degree is important",
+  "5. Freelancing gives more freedom",
+  "6. Confidence reaching dream job"
+)
+```
+
+```{r}
+p_q2 <- create_likert_chart(survey_data$Freelancing_faster_income, 
+                            "2. Freelancing offers faster income")
+print(p_q2)
+```
+
+With 48% agreement and only 6% strong disagreement, most respondents recognize freelancing's potential for quicker earnings compared to extended education, suggesting they perceive freelancing as a viable short-term income solution while acknowledging education's longer-term benefits.
+
+```{r}
+p_q3 <- create_likert_chart(survey_data$Confident_freelancer_without_degree, 
+                            "3. Confidence freelancing without a degree")
+print(p_q3)
+```
+
+The graph indicates that most respondents are uncertain about freelancing without a degree, with 40% selecting neutral. About one-third (34%) agree or strongly agree that they are confident freelancing without a degree, while a smaller portion (26%) disagree or strongly disagree. Overall, this suggests mixed views, with more respondents leaning toward uncertainty or moderate confidence rather than strong confidence or strong doubt.
+
+```{r}
+p_q4 <- create_likert_chart(survey_data$College_degree_important, 
+                            "4. College degree is important")
+print(p_q4)
+```
+
+The graph shows that many respondents question the importance of a college degree, with 48% disagreeing or strongly disagreeing that it is important. Meanwhile, 30% agree or strongly agree, and 22% remain neutral. Overall, this suggests that more respondents believe a college degree is not essential, though opinions are still divided.
+
+```{r}
+p_q5 <- create_likert_chart(survey_data$Freelancing_more_freedom, 
+                            "5. Freelancing gives more freedom")
+print(p_q5)
+```
+
+The graph clearly shows strong agreement that freelancing provides more freedom, with a large majority (60%) strongly agreeing and another 16% agreeing. Only a small percentage disagree (6% combined), while 18% are neutral. Overall, this indicates a very positive perception of freelancing as a flexible and freedom-enhancing career option.
+
+```{r}
+p_q6 <- create_likert_chart(survey_data$Confident_reaching_dream_job, 
+                            "6. Confidence reaching dream job")
+print(p_q6)
+```
+
+With 36% agreement and 26% strong agreement, totaling 62% positive responses, most respondents maintain optimism about achieving career aspirations, indicating that despite educational pathway dilemmas, they believe in their eventual professional success.
+
+```{r}
+mc_columns <- 15:18
+names(mc_columns) <- c(
+  "Factors_affecting_decision",
+  "Concerns_quitting_studies",
+  "Benefits_freelancing",
+  "Motivations_continue_studying"
+)
+
+process_multiple_choice <- function(column_name, title) {
+  if (!column_name %in% colnames(survey_data)) {
+    cat(paste("Column", column_name, "not found.\n"))
+    return(NULL)
+  }
+  
+  column_data <- survey_data[[column_name]]
+  
+  all_choices <- character()
+  
+  for (response in as.character(column_data)) {
+    if (!is.na(response) && response != "") {
+      split_choices <- unlist(strsplit(response, ",\\s*"))
+      all_choices <- c(all_choices, split_choices)
+    }
+  }
+  
+  if (length(all_choices) == 0) {
+    cat(paste("No data for", title, "\n"))
+    return(NULL)
+  }
+  
+  summary_df <- data.frame(Choice = all_choices) %>%
+    filter(Choice != "") %>%
+    count(Choice) %>%
+    mutate(percentage = n / sum(n) * 100) %>%
+    arrange(desc(n))
+  
+  p <- ggplot(summary_df, aes(x = reorder(Choice, n), y = percentage)) +
+    geom_bar(stat = "identity", fill = "steelblue", width = 0.7) +
+    geom_text(
+      aes(label = paste0(round(percentage, 1), "%")),
+      hjust = -0.1,
+      size = 3
+    ) +
+    coord_flip(clip = "off") +
+    scale_y_continuous(
+      expand = expansion(mult = c(0, 0.15)),
+      limits = c(0, max(summary_df$percentage) * 1.2)
+    ) +
+    labs(title = title, x = NULL, y = "Percentage") +
+    base_theme
+  
+  return(p)
+}
+
+mc_titles <- c(
+  "7. Factors Affecting Decision",
+  "8. Concerns About Quitting Studies",
+  "9. Benefits of Freelancing",
+  "10. Motivations to Continue Studying"
+)
+```
+
+```{r}
+mc_column_names <- colnames(survey_data)[mc_columns]
+
+if (1 <= length(mc_column_names)) {
+  p7 <- process_multiple_choice(mc_column_names[1], mc_titles[1])
+  if (!is.null(p7)) {
+    print(p7)
+  }
+}
+```
+
+Financial needs (29.1%) dominate decision-making, followed by family expectations (20%) and personal interest/job opportunities (19.1% each), revealing that economic pressures and external influences outweigh academic considerations (12.7%) when choosing between education and freelancing.
+
+```{r}
+if (2 <= length(mc_column_names)) {
+  p8 <- process_multiple_choice(mc_column_names[2], mc_titles[2])
+  if (!is.null(p8)) {
+    print(p8)
+  }
+}
+```
+
+Flexible schedules (28.2%) and practical experience (22.3%) are primary concerns about leaving education, showing that work-life balance and hands-on learning opportunities are valued more than potential income (18.4%) or autonomy (13.6%) when considering educational continuation.
+
+```{r}
+# Graph 9: Benefits of Freelancing
+if (3 <= length(mc_column_names)) {
+  p9 <- process_multiple_choice(mc_column_names[3], mc_titles[3])
+  if (!is.null(p9)) {
+    print(p9)
+  }
+}
+```
+
+The listed items actually represent concerns, with unstable income (26.7%) and future regret (26.7%) being equal top worries, followed by disappointing family (20.8%), indicating that financial uncertainty and long-term consequences are more concerning than career limitations (16.8%) or social judgment (8.9%).
+
+```{r}
+# Graph 10: Motivations to Continue Studying
+if (4 <= length(mc_column_names)) {
+  p10 <- process_multiple_choice(mc_column_names[4], mc_titles[4])
+  if (!is.null(p10)) {
+    print(p10)
+  }
+}
+```
+
+Personal goals (23.6%), degree attainment (22.6%), and job security (22.6%) are nearly equal primary motivators, while family support (16%) and course passion (15.1%) are secondary, showing that intrinsic ambition and practical outcomes drive educational persistence more than external factors.
+
+```{r}
+question11_col <- grep("stable.*income", colnames(survey_data), value = TRUE)[1]
+question12_col <- grep("mental.*well", colnames(survey_data), value = TRUE)[1]
+
+plot_yesno <- function(column, title, fill_color) {
+  df <- survey_data %>%
+    filter(!is.na(.data[[column]])) %>%
+    count(.data[[column]]) %>%
+    mutate(percentage = n/sum(n)*100)
+
+  ggplot(df, aes(as.factor(.data[[column]]), percentage)) +
+    geom_bar(stat = "identity", fill = fill_color, width = 0.6) +
+    geom_text(
+      aes(label = paste0(round(percentage,1), "%")),
+      vjust = -0.3,
+      size = 3
+    ) +
+    scale_y_continuous(expand = expansion(mult = c(0, 0.15))) +
+    labs(title = title, x = NULL, y = "Percentage") +
+    base_theme
+}
+```
+
+```{r}
+print(plot_yesno(
+  question11_col,
+  "11. Quit studying if freelancing guaranteed income?",
+  "darkgreen"
+))
+```
+
+Responses cluster in the middle range (24% at midpoint, 20% at 4 on 5-point scale), indicating conditional willingness to abandon education if freelancing provided financial stability, suggesting that guaranteed income could sway a significant portion from traditional educational paths.
+
+```{r}
+print(plot_yesno(
+  question12_col,
+  "12. Continue studying if jobs care about well-being?",
+  "purple"
+))
+```
+
+A strong 42% at the high end shows that employer attention to mental/physical health would significantly motivate continued education, revealing that modern workplace conditions are increasingly important in decisions about investing time in formal education.
+
+```{r}
+if ("Gender" %in% colnames(survey_data)) {
+  p_gender <- ggplot(survey_data, aes(Gender)) +
+    geom_bar(fill = "coral", width = 0.6) +
+    labs(title = "Gender Distribution", x = NULL, y = "Count") +
+    base_theme 
+    
+  print(p_gender)
+}
+```
+
+The balanced gender representation with slight female majority provides diverse perspectives for the survey, ensuring findings reflect varied experiences across gender lines regarding educational versus freelancing career decisions.
+
+```{r}
+
+if ("Age" %in% colnames(survey_data)) {
+  survey_data$Age <- as.numeric(survey_data$Age)
+
+  p_age <- ggplot(survey_data, aes(Age)) +
+    geom_histogram(binwidth = 1, fill = "lightblue", color = "black") +
+    labs(title = "Age Distribution", x = "Age", y = "Count") +
+    base_theme 
+    
+  print(p_age)
+}
+```
+
+The concentration around age 18 confirms the survey captures the primary demographic facing immediate decisions about continuing education versus alternative career paths, making the data particularly relevant for understanding this critical life-stage perspective.
+
+
+CONCLUSION
+
+The findings reveal a strong preference for traditional education (78%) driven by desires for job security and stability. However, students also recognize freelancing's advantages, such as faster income and greater freedom, creating a pragmatic tension. Economic factors and family expectations heavily influence decisions, while concerns about income stability and future regret deter a full shift to freelancing. The study concludes that while formal education remains the preferred path, guaranteed financial security or better workplace well-being could significantly alter these choices, highlighting the need for educational systems to integrate practical career preparation for a changing job market.
